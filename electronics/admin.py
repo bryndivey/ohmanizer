@@ -19,12 +19,24 @@ class ComponentParameterValueInline(admin.StackedInline):
 
 class ComponentAdmin(admin.ModelAdmin):
     inlines = [ComponentParameterValueInline]
+    list_display = ('name', 'type')
 
 admin.site.register(models.Component, ComponentAdmin)
 
 admin.site.register(models.ComponentCategory)
 admin.site.register(models.Location)
-admin.site.register(models.Stock)
+
+class StockAdmin(admin.ModelAdmin):
+    def component_name(self, obj):
+        return obj.component.name
+        
+    def component_type(self, obj):
+        return obj.component.type
+        
+    list_display = ('component_name', 'component_type', 'number', 'location')
+    list_filter = ('component__type',)
+    
+admin.site.register(models.Stock, StockAdmin)
 admin.site.register(models.WishItem)
 admin.site.register(models.Label)
 
