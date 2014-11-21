@@ -19,6 +19,9 @@ class ComponentCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, default='')
 
+    class Meta:
+        verbose_name_plural = 'Component categories'
+
     def __unicode__(self):
         return unicode(self.name)
     
@@ -76,11 +79,24 @@ class Stock(models.Model):
     last_check = models.DateField(default=datetime.datetime.utcnow)
     notes = models.TextField(blank=True, default='')
 
+    class Meta:
+        verbose_name_plural = 'Stock'
+
     def __unicode__(self):
         return "%s: %i %s in %s" % (self.tag, self.number, self.component, self.location)
 
+    def save(self, *args, **kwargs):
+        is_new = not self.pk
+        super(Stock, self).save(*args, **kwargs)
+        if is_new:
+            label = Label(stock=self)
+            label.save()
+
 class Label(models.Model):
     stock = models.ForeignKey(Stock)
+
+    def __unicode__(self):
+        return unicode(self.stock)
 
 class WishItem(models.Model):
     component = models.ForeignKey(Component)

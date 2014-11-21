@@ -1,4 +1,4 @@
-import labels
+import labels as labels
 import os.path
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase.pdfmetrics import registerFont, stringWidth
@@ -26,8 +26,9 @@ def shrink_font(text, width, start_size=10):
         name_width = stringWidth(text, "Helvetica", font_size)
     return font_size
 
-def write_part(label, width, height, part):
+def write_label(label, width, height, part):
     # Measure the width of the name and shrink the font size until it fits.
+    part = part.stock
     s = shapes.String(3, height-15, part.component.name)
     s.fontName = "Helvetica"
     s.fontSize = shrink_font(part.component.name, width)
@@ -44,16 +45,13 @@ def write_part(label, width, height, part):
     s.fontSize = 6
     label.add(s)
 
-def write_parts(parts):
+def write_labels(labelobjs, partials=[]):
     # Create the sheet.
-    sheet = labels.Sheet(specs, write_part, border=False)
-    sheet.add_labels(part for part in parts)
+    sheet = labels.Sheet(specs, write_label, border=False)
+    sheet.partial_page(1, partials)
+    sheet.add_labels(label for label in labelobjs)
     # Save the file and we are done.
-    sheet.save('parts.pdf')
+    sheet.save('/tmp/labels.pdf')
     print("{0:d} label(s) output on {1:d} page(s).".format(sheet.label_count, sheet.page_count))
 
 
-from models import Label
-def make_labels():
-    labels = Label.ojects.all()
-    write_parts(labels)
