@@ -47,8 +47,13 @@ def write_part(label, width, height, part):
 def write_parts(parts):
     # Create the sheet.
     sheet = labels.Sheet(specs, write_part, border=False)
-    #sheet.partial_page(1, [(a,b) for a in (1, 2, 3) for b in (1, 2, 3, 4, 5,)])
     sheet.add_labels(part for part in parts)
     # Save the file and we are done.
     sheet.save('parts.pdf')
     print("{0:d} label(s) output on {1:d} page(s).".format(sheet.label_count, sheet.page_count))
+
+
+from models import Label
+def make_labels():
+    labels = Label.ojects.all()
+    write_parts(labels)

@@ -22,10 +22,11 @@ class ComponentAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Component, ComponentAdmin)
 
-#admin.site.register(models.ComponentParameterValue)
+admin.site.register(models.ComponentCategory)
 admin.site.register(models.Location)
 admin.site.register(models.Stock)
 admin.site.register(models.WishItem)
+admin.site.register(models.Label)
 
 class OrderComponentInline(admin.StackedInline):
     model = models.OrderComponent

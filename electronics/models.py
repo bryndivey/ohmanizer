@@ -15,10 +15,19 @@ class Parameter(models.Model):
     def __unicode__(self):
         return '%s (%s)' % (self.name, self.description)
 
+class ComponentCategory(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, default='')
+
+    def __unicode__(self):
+        return unicode(self.name)
+    
+        
 class ComponentType(models.Model):
     name = models.CharField(max_length=40)
     parameters = models.ManyToManyField(Parameter, blank=True)
     notes = models.TextField(blank=True, default='')
+    category = models.ForeignKey(ComponentCategory, null=True)
 
     class Meta:
         ordering = ['name']
@@ -29,7 +38,7 @@ class ComponentType(models.Model):
 class Component(models.Model):
     name = models.CharField(max_length=40)
     type = models.ForeignKey(ComponentType)
-    datasheet = models.URLField()
+    datasheet = models.URLField(blank=True)
     notes = models.TextField(blank=True, default='')
     
     class Meta:
@@ -69,6 +78,9 @@ class Stock(models.Model):
 
     def __unicode__(self):
         return "%s: %i %s in %s" % (self.tag, self.number, self.component, self.location)
+
+class Label(models.Model):
+    stock = models.ForeignKey(Stock)
 
 class WishItem(models.Model):
     component = models.ForeignKey(Component)
