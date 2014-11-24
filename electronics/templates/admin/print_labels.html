@@ -22,7 +22,7 @@
 	{% for y in yrange %}
 	<tr>
 	  {% for x in xrange %}
-	  <td><input type="checkbox" name="used" value="{{ x }},{{ y }}"/></td>
+	  <td><input type="checkbox" name="used" value="{{ y }},{{ x }}"/></td>
 	  {% endfor %}
 	</tr>
         {% endfor %}
