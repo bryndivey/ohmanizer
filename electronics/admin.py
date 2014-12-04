@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 
 from electronics import models
@@ -32,13 +34,30 @@ class ComponentAdmin(admin.ModelAdmin):
         for param in obj.componentparametervalue_set.all():
             pout.append(format_html(u'<li>{0}: {1}</li>', param.parameter.name, param.value))
         return '<ul>%s</ul>' % (''.join(pout), )
+        
     parameters.allow_tags = True
 
+    add_form_template = 'admin/component_change_form.html'
+    change_form_template = 'admin/component_change_form.html'
     actions = [create_wishlist_items]
     list_filter = ('type', )
     list_display = ('name', 'type', 'parameters')
     search_fields = ('name', 'type__name')
-            
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if '_addstock' in request.POST:
+            return HttpResponseRedirect('%s?component=%s' % (
+                reverse('admin:electronics_stock_add'),
+                obj.id))
+        return super(ComponentAdmin, self).response_add(request, obj, post_url_continue)
+    
+    def response_change(self, request, obj, post_url_continue=None):
+        if '_addstock' in request.POST:
+            return HttpResponseRedirect('%s?component=%s' % (
+                reverse('admin:electronics_stock_add'),
+                obj.id))
+        return super(ComponentAdmin, self).response_add(request, obj, post_url_continue)
+    
 
 admin.site.register(models.Component, ComponentAdmin)
 
