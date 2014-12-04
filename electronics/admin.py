@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.template.response import TemplateResponse
+from django.utils.html import format_html
+
 from electronics import models
+import electronics.labeler
 
 admin.site.register(models.Parameter)
 
@@ -20,7 +23,23 @@ class ComponentParameterValueInline(admin.StackedInline):
 
 class ComponentAdmin(admin.ModelAdmin):
     inlines = [ComponentParameterValueInline]
-    list_display = ('name', 'type')
+
+    def create_wishlist_items(self, request, queryset):
+        for obj in queryset:
+            models.WishItem(component=obj).save()
+
+    def parameters(self, obj):
+        pout = []
+        for param in obj.componentparametervalue_set.all():
+            pout.append(format_html(u'<li>{0}: {1}</li>', param.parameter.name, param.value))
+        return '<ul>%s</ul>' % (''.join(pout), )
+    parameters.allow_tags = True
+
+    actions = [create_wishlist_items]
+    list_filter = ('type', )
+    list_display = ('name', 'type', 'parameters')
+    search_fields = ('name', 'type__name')
+            
 
 admin.site.register(models.Component, ComponentAdmin)
 
@@ -34,8 +53,11 @@ class StockAdmin(admin.ModelAdmin):
     def component_type(self, obj):
         return obj.component.type
         
-    list_display = ('component_name', 'component_type', 'number', 'location')
+    list_display = ('component_name', 'component_type', 'number', 'location', 'subslot',
+                    'tag')
     list_filter = ('component__type',)
+    search_fields = ('=tag', 'component__type__name',
+                     'component__name', 'location__designation')
 
 admin.site.register(models.Stock, StockAdmin)
 admin.site.register(models.WishItem)
@@ -45,19 +67,9 @@ class LabelAdmin(admin.ModelAdmin):
         opts = self.model._meta
         app_label = opts.app_label
 
-        # The user has already confirmed the deletion.
-        # Do the deletion and return a None to display the change list view again.
         if request.POST.get('post'):
-            n = queryset.count()
-            for label in queryset:
-                print label
-            print request.POST.getlist('used')
             used = [(map(int, v.split(','))) for v in request.POST.getlist('used')]
-            
-            import electronics.labeler
             electronics.labeler.write_labels(queryset, used)
-            print used
-            print 'PRINTING!'
             return
 
         if len(queryset) == 1:
