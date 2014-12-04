@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
 from electronics import models
-import electronics.labeler
+from electronics import actions
 
 admin.site.register(models.Parameter)
 
@@ -44,7 +43,17 @@ class ComponentAdmin(admin.ModelAdmin):
 admin.site.register(models.Component, ComponentAdmin)
 
 admin.site.register(models.ComponentCategory)
-admin.site.register(models.Location)
+
+class LocationAdmin(admin.ModelAdmin):
+    def num_components(self, obj):
+        return obj.stock_set.count()
+        
+    list_display = ('designation', 'description', 'num_components')
+    actions = [actions.print_labels]
+
+
+    
+admin.site.register(models.Location, LocationAdmin)
 
 class StockAdmin(admin.ModelAdmin):
     def component_name(self, obj):
@@ -55,43 +64,22 @@ class StockAdmin(admin.ModelAdmin):
         
     list_display = ('component_name', 'component_type', 'number', 'location', 'subslot',
                     'tag')
-    list_filter = ('component__type',)
+    list_filter = ('component__type', 'location')
     search_fields = ('=tag', 'component__type__name',
                      'component__name', 'location__designation')
+
+    def create_labels(self, request, queryset):
+        for stock in queryset:
+            label = models.Label(stock=stock)
+            label.save()
+
+    actions = [create_labels]
 
 admin.site.register(models.Stock, StockAdmin)
 admin.site.register(models.WishItem)
 
 class LabelAdmin(admin.ModelAdmin):
-    def print_labels(self, request, queryset):
-        opts = self.model._meta
-        app_label = opts.app_label
-
-        if request.POST.get('post'):
-            used = [(map(int, v.split(','))) for v in request.POST.getlist('used')]
-            electronics.labeler.write_labels(queryset, used)
-            return
-
-        if len(queryset) == 1:
-            objects_name = opts.verbose_name
-        else:
-            objects_name = opts.verbose_name_plural
-
-        context = {
-            "title": "Print labels",
-            "objects_name": objects_name,
-            'queryset': queryset,
-            "opts": opts,
-            'xrange': range(1, 6),
-            'yrange': range(1, 14),
-        }
-
-        # Display the confirmation page
-        return TemplateResponse(request, "admin/print_labels.html",
-                                context, current_app=self.admin_site.name)
-
-
-    actions = [print_labels]
+    actions = [actions.print_labels]
         
 admin.site.register(models.Label, LabelAdmin)
 

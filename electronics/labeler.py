@@ -26,26 +26,24 @@ def shrink_font(text, width, start_size=10):
         name_width = stringWidth(text, "Helvetica", font_size)
     return font_size
 
-def write_label(label, width, height, part):
+def write_label(label, width, height, data):
     # Measure the width of the name and shrink the font size until it fits.
-    part = part.stock
-    s = shapes.String(3, height-15, part.component.name)
-    s.fontName = "Helvetica"
-    s.fontSize = shrink_font(part.component.name, width)
-    label.add(s)
 
-    s = shapes.String(3, height-30, part.component.type.name)
-    s.fontName = "Helvetica"
-    s.fontSize = shrink_font(part.component.name, width, 8)
-    label.add(s)
+    for i, (string, size) in enumerate(data.get('left', [])):
+        s = shapes.String(3, height-15 * (i+1), string)
+        s.fontName = "Helvetica"
+        s.fontSize = shrink_font(string, width, size)
+        label.add(s)
 
-    ref_width = stringWidth(part.tag, "Helvetica", 6)
-    s = shapes.String(width-3-ref_width, height-12, part.tag)
-    s.fontName = "Helvetica"
-    s.fontSize = 6
-    label.add(s)
 
-def write_labels(labelobjs, partials=[]):
+    for i, (string, size) in enumerate(data.get('right', [])):
+        ref_width = stringWidth(string, "Helvetica", size)
+        s = shapes.String(width-3-ref_width, height-12*(i+1), string)
+        s.fontName = "Helvetica"
+        s.fontSize = size
+        label.add(s)
+
+def write_labels(labelobjs, partials=[], ):
     # Create the sheet.
     sheet = labels.Sheet(specs, write_label, border=False)
     sheet.partial_page(1, partials)

@@ -67,6 +67,9 @@ class Location(models.Model):
             return "%s: %s" % (self.designation, self.description)
         return self.designation
 
+    def to_label_values(self):
+        return [{'left': [(self.designation, 15)]}] * 5
+
 def random_tag():
     return ''.join([random.choice(string.letters + string.digits) for _ in xrange(5)])
         
@@ -97,6 +100,11 @@ class Label(models.Model):
 
     def __unicode__(self):
         return unicode(self.stock)
+
+    def to_label_values(self):
+        return [{'left': [(self.stock.component.name, 10),
+                          (self.stock.component.type.name, 10)],
+                 'right': [(self.stock.tag, 6)]}]
 
 class WishItem(models.Model):
     component = models.ForeignKey(Component)
