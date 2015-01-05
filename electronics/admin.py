@@ -34,14 +34,19 @@ class ComponentAdmin(admin.ModelAdmin):
         for param in obj.componentparametervalue_set.all():
             pout.append(format_html(u'<li>{0}: {1}</li>', param.parameter.name, param.value))
         return '<ul>%s</ul>' % (''.join(pout), )
-        
     parameters.allow_tags = True
+
+    def stock_link(self, obj):
+        return u'<a href="%s?component__id__exact=%s">Stock</a>' % (
+            reverse('admin:electronics_stock_changelist'),
+            obj.id)
+    stock_link.allow_tags = True
 
     add_form_template = 'admin/component_change_form.html'
     change_form_template = 'admin/component_change_form.html'
     actions = [create_wishlist_items]
     list_filter = ('type', )
-    list_display = ('name', 'type', 'parameters')
+    list_display = ('name', 'type', 'parameters', 'stock_link')
     search_fields = ('name', 'type__name')
 
     def response_add(self, request, obj, post_url_continue=None):
@@ -111,4 +116,12 @@ class OrderAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Order, OrderAdmin)
 
+class OrderItemInline(admin.StackedInline):
+    model = models.OrderComponent
+    extra = 3
+
+class OrderAdmin(admin.ModelAdmin):
+    inlines = [OrderItemInline]
+
 # Register your models here.
+
