@@ -1,5 +1,5 @@
 from django.template.response import TemplateResponse
-import electronics.labeler
+#import electronics.labeler
 
 def print_labels(modeladmin, request, queryset):
     opts = modeladmin.model._meta
