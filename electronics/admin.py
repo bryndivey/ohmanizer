@@ -13,10 +13,17 @@ class ParameterInline(admin.StackedInline):
     extra = 3
 
 class ComponentTypeAdmin(admin.ModelAdmin):
-    inlines = [ParameterInline]
+    def components_link(self, obj):
+        return u'<a href="%s?type__id__exact=%s">Components</a>' % (
+            reverse('admin:electronics_component_changelist'),
+            obj.id)
+    components_link.allow_tags = True
+    list_display = ('name', 'category', 'components_link')
+
     
-#admin.site.register(models.ComponentType, ComponentTypeAdmin)
-admin.site.register(models.ComponentType)
+    
+admin.site.register(models.ComponentType, ComponentTypeAdmin)
+#admin.site.register(models.ComponentType)
 
 class ComponentParameterValueInline(admin.StackedInline):
     model = models.ComponentParameterValue
@@ -84,7 +91,10 @@ class StockAdmin(admin.ModelAdmin):
         return obj.component.name
         
     def component_type(self, obj):
-        return obj.component.type
+        return u'<a href="%s">%s</a>' % (
+            reverse('admin:electronics_componenttype_change', None, [str(obj.component.type.id)]),
+            obj.component.type)
+    component_type.allow_tags = True
         
     list_display = ('component_name', 'component_type', 'number', 'location', 'subslot',
                     'tag')
